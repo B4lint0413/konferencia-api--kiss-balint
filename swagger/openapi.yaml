@@ -1,0 +1,148 @@
+openapi: 3.0.0
+info:
+  title: Registration API
+  version: 1.0.0
+servers:
+  - url: http://backend.vm1.test
+    description: VM1 backend
+  - url: http://backend.vm2.test
+    description: VM2 backend
+  - url: http://backend.vm3.test
+    description: VM3 backend
+  - url: http://backend.vm4.test
+    description: VM4 backend
+  - url: http://backend.vm5.test
+    description: VM5 backend
+paths:
+  /api/registrations:
+    get:
+      summary: Regisztrációk listázása
+      description: |
+        **Listázza ki az összes regisztrációt!**
+
+        Az `orderBy` query paraméter határozza meg, hogy mi alapján történjen a rendezés.
+        Csak akkor fogadja el, ha az értéke `name` vagy `date`, különben hagyja figyelmen kívül.
+
+        Az `order` határozza meg a rendezés irányát. Értéke csak `asc` vagy `desc` lehet,
+        csak és kizárólak a kisbetűs formában fogadja el!
+
+        Amennyiben nincs a rendezés módja meghatározva,
+        úgy az adatok a felvitelük sorrendjében jelenjenek meg.
+      operationId: registrations.index
+      tags:
+        - Registration
+      parameters:
+        - name: orderBy
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [name, date]
+          description: A rendezés alapjául szolgáló mező
+        - name: order
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+          description: A rendezés iránya (növekvő vagy csökkenő)
+      responses:
+        '200':
+          description: VIsszaadja az összes regisztrációt a megadott rendezési feltétel szerint, ha van olyan.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Registration'
+  /api/registrations/{registration}:
+    get:
+      summary: Megjelenít egyetlen regisztrációt
+      description: |
+         Keresse ki a megfelelő rekordot az adatbázisból az `id` alapján.
+      operationId: registrations.show
+      tags:
+        - Registration
+      parameters:
+        - name: registration
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Egy regisztráció megjelenítése
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Registration'
+        '404':
+          description: Az elem nem található
+    delete:
+      summary: Regisztráció törlése
+      description: |
+         Törölje ki a megfelelő rekordot az adatbázisból az `id` alapján.
+      operationId: registrations.destroy
+      tags:
+        - Registration
+      parameters:
+        - name: registration
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Sikeres törlés
+        '404':
+          description: Az elem nem található
+        '500':
+          description: Szerver hiba
+
+  /api/registrations/count:
+    get:
+      summary: Regisztráltak száma
+      operationId: registrations.count
+      tags:
+        - Registration
+      responses:
+        '200':
+          description: Visszaadja a regisztrált felhasználók számát
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: integer
+
+components:
+  schemas:
+    Registration:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: A regisztráció azonosítója
+        name:
+          type: string
+          maxLength: 40
+          description: A regisztráló neve
+        vegetarian:
+          type: boolean
+          description: Vegetáriánus étrendet kér -e, vagy sem
+        date:
+          type: string
+          format: date
+          description: Erre a napra szól a regisztráció
+        arrived:
+          type: string
+          format: time
+          nullable: true
+          description: Az érkezés ideje, ha nem érkezett meg, akkor null
