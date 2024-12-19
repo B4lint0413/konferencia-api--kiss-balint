@@ -10,4 +10,6 @@ class Registration extends Model
 {
     use HasFactory;
     use SoftDeletes;
+
+    protected $fillable = ["name", "vegetarian", "date", "arrived"];
 }

@@ -1,8 +1,10 @@
-openapi: 3.0.0
+openapi: "3.1.0"
 info:
   title: Registration API
   version: 1.0.0
 servers:
+  - url: http://backend.localhost
+    description: Localhost
   - url: http://backend.vm1.test
     description: VM1 backend
   - url: http://backend.vm2.test
@@ -48,7 +50,7 @@ paths:
           description: A rendezés iránya (növekvő vagy csökkenő)
       responses:
         '200':
-          description: VIsszaadja az összes regisztrációt a megadott rendezési feltétel szerint, ha van olyan.
+          description: Visszaadja az összes regisztrációt a megadott rendezési feltétel szerint, ha van olyan.
           content:
             application/json:
               schema:
@@ -58,6 +60,77 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Registration'
+    post:
+        summary: Új regisztráció létrehozása
+        description: |
+          A `store` action feladata, hogy a JSON-ként kapott adatokat validálja, majd eltárolja az adatbázisba. A létrehozott új rekordot adja is vissza `RegistrationResource` által!
+
+
+          Az adatok ellenőrzéséhez hozza létre a `StoreRegistrationRequest` osztályt, a validációs szabályokat az alábbiak alapján határozza meg:
+
+            - Az oldalt bárki elérheti, a regisztráció szabad bárkinek.
+            - A `name` megadása kötelező, legalább 1 karakter, és nem lehet több, mint amit az adatábzis el tud tárolni!
+            - A `vegetarian` mező kötelezően kitöltendő, és csak igaz, vagy hamis értéket kaphat!
+            - A `date` kitöltése kötelező, érvényes dátumnak kell lennie, továbbá az esemény napjaira kell esnie!
+            - Az `arrived` kitöltése opcionális, de ha ki van töltve, akkor érvényes időpont legyen reggel 8 óra és délután 2 óra között.
+        operationId: registrations.store
+        tags:
+          - Registration
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: Karasi Norbert
+                  vegetarian:
+                    type: boolean
+                    example: false
+                  date:
+                    type: string
+                    format: date
+                    example: 2022-02-01
+                  arrived:
+                    type: string
+                    format: time
+                    example: 08:51:23
+        responses:
+          '201':
+            description: A létrehozott új rekord
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/Registration'
+                examples:
+                  example-1:
+                    summary: Lehetséges válasz
+                    value:
+                      data:
+                        id: 571
+                        name: Karasi Norbert
+                        vegetarian: false
+                        date: "2022-02-01"
+                        arrived: "08:51:23"
+          '422':
+            description: |
+              Az adatok validálásának sikertelensége estetén a hibajelzést JSON formátumbabn adja vissza.
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                      example: Invalid input data
+                    errors:
+                      type: object
+
   /api/registrations/{registration}:
     get:
       summary: Megjelenít egyetlen regisztrációt

@@ -8,3 +8,4 @@ Route::get('/registrations', [RegistrationController::class, 'index'])->name('re
 Route::get('/registrations/{registration}', [RegistrationController::class, 'show'])->whereNumber('registration')->name('registrations.show');
 Route::get('/registrations/count', [RegistrationController::class, 'count'])->name('registrations.count');
 Route::delete('/registrations/{registration}', [RegistrationController::class, 'destroy'])->name('registrations.destroy');
+Route::post('/registrations', [RegistrationController::class, 'store'])->name('registrations.store');

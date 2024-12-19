@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Resources\RegistrationResource;
 use Illuminate\Http\Request;
 use App\Models\Registration;
+use App\Http\Requests\StoreRegistrationRequest;
 
 class RegistrationController extends Controller
 {
@@ -18,12 +19,7 @@ class RegistrationController extends Controller
                 if(!in_array($request->get('order'), ['asc', 'desc'])){
                     abort(400);
                 }
-
-                if($request->get('order') == 'asc'){
-                    $regs = $regs->sortBy($request->get('orderBy'));
-                }else{
-                    $regs = $regs->sortByDesc($request->get('orderBy'));
-                }
+                $regs = Registration::orderBy($request->get('orderBy'), $request->get('order'))->get();
             }
         }
         return RegistrationResource::collection($regs);
@@ -40,5 +36,11 @@ class RegistrationController extends Controller
     public function destroy(int $registration){
         $reg = Registration::findOrFail($registration);
         Registration::destroy($reg->id);
+    }
+
+    public function store(StoreRegistrationRequest $request){
+        $data = $request->validated();
+        $create = Registration::create($data);
+        return new RegistrationResource($create);
     }
 }
